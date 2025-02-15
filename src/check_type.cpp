@@ -223,7 +223,7 @@ gb_internal void check_struct_fields(CheckerContext *ctx, Ast *node, Slice<Entit
 			}
 		}
 	}
-	
+
 	*fields = slice_from_array(fields_array);
 	*tags = tags_array.data;
 }
@@ -635,7 +635,7 @@ gb_internal void check_struct_type(CheckerContext *ctx, Type *struct_type, Ast *
 		case_end;
 		}
 	}
-	
+
 	scope_reserve(ctx->scope, min_field_count);
 
 	if (st->is_raw_union && min_field_count > 1) {
@@ -1016,7 +1016,7 @@ gb_internal void check_bit_field_type(CheckerContext *ctx, Type *bit_field_type,
 			gbString s = type_to_string(type);
 			error(f->type, "The type of a bit_field's field must be a typed integer, enum, or boolean, got %s", s);
 			gb_string_free(s);
-		} else if (!(is_type_integer(type) || is_type_enum(type) || is_type_boolean(type))) {
+		} else if (!(is_type_integer_like(type) || is_type_enum(type) || is_type_boolean(type))) {
 			gbString s = type_to_string(type);
 			error(f->type, "The type of a bit_field's field must be an integer, enum, or boolean, got %s", s);
 			gb_string_free(s);
@@ -1303,12 +1303,12 @@ gb_internal void check_bit_set_type(CheckerContext *c, Type *type, Type *named_t
 		}
 		i64 lower = big_int_to_i64(&i);
 		i64 upper = big_int_to_i64(&j);
-		
+
 		i64 actual_lower = lower;
 		i64 bits = MAX_BITS;
 		if (type->BitSet.underlying != nullptr) {
 			bits = 8*type_size_of(type->BitSet.underlying);
-			
+
 			if (lower > 0) {
 				actual_lower = 0;
 			} else if (lower < 0) {
@@ -1346,7 +1346,7 @@ gb_internal void check_bit_set_type(CheckerContext *c, Type *type, Type *named_t
 				error(bs->elem, "bit_set range is greater than %lld bits, %lld bits are required", bits, bits_required);
 			}
 		}
-		
+
 		type->BitSet.elem  = t;
 		type->BitSet.lower = lower;
 		type->BitSet.upper = upper;
@@ -1384,7 +1384,7 @@ gb_internal void check_bit_set_type(CheckerContext *c, Type *type, Type *named_t
 				}
 
 				GB_ASSERT(lower <= upper);
-				
+
 				bool lower_changed = false;
 				i64 bits = MAX_BITS
 ;				if (bs->underlying != nullptr) {
@@ -1397,7 +1397,7 @@ gb_internal void check_bit_set_type(CheckerContext *c, Type *type, Type *named_t
 					}
 					type->BitSet.underlying = u;
 					bits = 8*type_size_of(u);
-					
+
 					if (lower > 0) {
 						lower = 0;
 						lower_changed = true;
@@ -1421,7 +1421,7 @@ gb_internal void check_bit_set_type(CheckerContext *c, Type *type, Type *named_t
 				type->BitSet.upper = upper;
 			}
 		}
-	}	
+	}
 }
 
 
@@ -2865,24 +2865,24 @@ gb_internal void check_map_type(CheckerContext *ctx, Type *type, Ast *node) {
 
 gb_internal void check_matrix_type(CheckerContext *ctx, Type **type, Ast *node) {
 	ast_node(mt, MatrixType, node);
-	
+
 	Operand row = {};
 	Operand column = {};
-	
+
 	i64 row_count = check_array_count(ctx, &row, mt->row_count);
 	i64 column_count = check_array_count(ctx, &column, mt->column_count);
 
 	Type *generic_row = nullptr;
 	Type *generic_column = nullptr;
-	
+
 	if (row.mode == Addressing_Type && row.type->kind == Type_Generic) {
 		generic_row = row.type;
 	}
-	
+
 	if (column.mode == Addressing_Type && column.type->kind == Type_Generic) {
 		generic_column = column.type;
 	}
-	
+
 	if (generic_row == nullptr && row_count < MATRIX_ELEMENT_COUNT_MIN) {
 		if (row.expr == nullptr) {
 			error(node, "Invalid matrix row count, got nothing");
@@ -2892,7 +2892,7 @@ gb_internal void check_matrix_type(CheckerContext *ctx, Type **type, Ast *node) 
 			gb_string_free(s);
 		}
 	}
-	
+
 	if (generic_column == nullptr && column_count < MATRIX_ELEMENT_COUNT_MIN) {
 		if (column.expr == nullptr) {
 			error(node, "Invalid matrix column count, got nothing");
@@ -2902,7 +2902,7 @@ gb_internal void check_matrix_type(CheckerContext *ctx, Type **type, Ast *node) 
 			gb_string_free(s);
 		}
 	}
-	
+
 	if ((generic_row == nullptr && generic_column == nullptr) && row_count*column_count > MATRIX_ELEMENT_COUNT_MAX) {
 		i64 element_count = row_count*column_count;
 		error(column.expr, "Matrix types are limited to a maximum of %d elements, got %lld", MATRIX_ELEMENT_COUNT_MAX, cast(long long)element_count);
@@ -2910,7 +2910,7 @@ gb_internal void check_matrix_type(CheckerContext *ctx, Type **type, Ast *node) 
 
 
 	Type *elem = check_type_expr(ctx, mt->elem, nullptr);
-	
+
 	if (!is_type_valid_for_matrix_elems(elem)) {
 		if (elem == t_typeid) {
 			Entity *e = entity_of_node(mt->elem);
@@ -2927,9 +2927,9 @@ gb_internal void check_matrix_type(CheckerContext *ctx, Type **type, Ast *node) 
 		gb_string_free(s);
 	}
 type_assign:;
-	
+
 	*type = alloc_type_matrix(elem, row_count, column_count, generic_row, generic_column, mt->is_row_major);
-	
+
 	return;
 }
 
@@ -3721,8 +3721,8 @@ gb_internal bool check_type_internal(CheckerContext *ctx, Ast *e, Type **type, T
 			return true;
 		}
 	case_end;
-	
-	
+
+
 	case_ast_node(mt, MatrixType, e);
 		check_matrix_type(ctx, type, e);
 		set_base_type(named_type, *type);

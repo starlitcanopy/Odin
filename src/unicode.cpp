@@ -11,6 +11,15 @@ extern "C" {
 	#pragma warning(pop)
 #endif
 
+gb_internal bool rune_is_special(Rune r) {
+	// Allow 𝔽, ∞, □, ◇, ♯, ♭, ∼, ≃, ≅
+	if (r == 0x1D53D || r == 0x221E || r == 0x25A1 || r == 0x25C7 || r == 0x266F ||
+	    r == 0x266D || r == 0x223C || r == 0x2243 || r == 0x2245) {
+		return true;
+	}
+
+	return false;
+}
 
 gb_internal bool rune_is_letter(Rune r) {
 	if (r < 0x80) {
@@ -19,6 +28,11 @@ gb_internal bool rune_is_letter(Rune r) {
 		}
 		return ((cast(u32)r | 0x20) - 0x61) < 26;
 	}
+
+	if (rune_is_special(r)) {
+		return true;
+	}
+
 	switch (utf8proc_category(r)) {
 	case UTF8PROC_CATEGORY_LU:
 	case UTF8PROC_CATEGORY_LL:
@@ -34,6 +48,7 @@ gb_internal bool rune_is_digit(Rune r) {
 	if (r < 0x80) {
 		return (cast(u32)r - '0') < 10;
 	}
+
 	return utf8proc_category(r) == UTF8PROC_CATEGORY_ND;
 }
 
@@ -47,6 +62,16 @@ gb_internal bool rune_is_letter_or_digit(Rune r) {
 		}
 		return (cast(u32)r - '0') < 10;
 	}
+
+	// Check for Superscript and Subscript digits specifically (U+2070 to U+209F)
+	if (r == 0x00B2 || r == 0x00B3 || r == 0x00B9 ||  (r >= 0x2070 && r <= 0x209F)) {
+		return true;
+	}
+
+	if (rune_is_special(r)) {
+		return true;
+	}
+
 	switch (utf8proc_category(r)) {
 	case UTF8PROC_CATEGORY_LU:
 	case UTF8PROC_CATEGORY_LL:

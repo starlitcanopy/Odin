@@ -19,6 +19,11 @@ gb_internal bool rune_is_letter(Rune r) {
 		}
 		return ((cast(u32)r | 0x20) - 0x61) < 26;
 	}
+
+	if (r == 0x1D53D) {
+		return true;
+	}
+
 	switch (utf8proc_category(r)) {
 	case UTF8PROC_CATEGORY_LU:
 	case UTF8PROC_CATEGORY_LL:
@@ -51,6 +56,11 @@ gb_internal bool rune_is_letter_or_digit(Rune r) {
 
 	// Check for Superscript and Subscript digits specifically (U+2070 to U+209F)
 	if (r == 0x00B2 || r == 0x00B3 || r == 0x00B9 ||  (r >= 0x2070 && r <= 0x209F)) {
+		return true;
+	}
+
+	// Allow 𝔽, ∞, □, ◇
+	if (r == 0x1D53D || r == 0x221E || r == 0x25A1 || r == 0x25C7) {
 		return true;
 	}
 

@@ -12,9 +12,9 @@ extern "C" {
 #endif
 
 gb_internal bool rune_is_special(Rune r) {
-	// Allow 𝔽, ∞, □, ◇, ♯, ♭
+	// Allow 𝔽, ∞, □, ◇, ♯, ♭, ∼, ≃, ≅
 	if (r == 0x1D53D || r == 0x221E || r == 0x25A1 || r == 0x25C7 || r == 0x266F ||
-	    r == 0x266D) {
+	    r == 0x266D || r == 0x223C || r == 0x2243 || r == 0x2245) {
 		return true;
 	}
 

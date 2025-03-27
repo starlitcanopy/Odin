@@ -151,9 +151,9 @@ is_letter :: proc(r: rune) -> bool {
 		return true;
 	}
 
-	// Allow 𝔽, ∞, □, ◇, ♯, ♭
-	if r == 0x1D53D || r == 0x221E || r == 0x25A1 || r == 0x25C7 || r == 0x266F ||
-	   r == 0x266D {
+	// Allow 𝔽, ∞, □, ◇, ♯, ♭, ∼, ≃, ≅
+	if (r == 0x1D53D || r == 0x221E || r == 0x25A1 || r == 0x25C7 || r == 0x266F ||
+	    r == 0x266D || r == 0x223C || r == 0x2243 || r == 0x2245) {
 		return true;
 	}
 

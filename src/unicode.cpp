@@ -11,6 +11,15 @@ extern "C" {
 	#pragma warning(pop)
 #endif
 
+gb_internal bool rune_is_special(Rune r) {
+	// Allow 𝔽, ∞, □, ◇, ♯, ♭
+	if (r == 0x1D53D || r == 0x221E || r == 0x25A1 || r == 0x25C7 || r == 0x266F ||
+	    r == 0x266D) {
+		return true;
+	}
+
+	return false;
+}
 
 gb_internal bool rune_is_letter(Rune r) {
 	if (r < 0x80) {
@@ -20,7 +29,7 @@ gb_internal bool rune_is_letter(Rune r) {
 		return ((cast(u32)r | 0x20) - 0x61) < 26;
 	}
 
-	if (r == 0x1D53D) {
+	if (rune_is_special(r)) {
 		return true;
 	}
 
@@ -59,9 +68,7 @@ gb_internal bool rune_is_letter_or_digit(Rune r) {
 		return true;
 	}
 
-	// Allow 𝔽, ∞, □, ◇, ♯, ♭
-	if (r == 0x1D53D || r == 0x221E || r == 0x25A1 || r == 0x25C7 || r == 0x266F ||
-	    r == 0x266D) {
+	if (rune_is_special(r)) {
 		return true;
 	}
 

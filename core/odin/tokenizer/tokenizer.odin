@@ -145,12 +145,19 @@ is_letter :: proc(r: rune) -> bool {
 			return true
 		}
 	}
+
+	// Check for Superscript and Subscript digits specifically (U+2070 to U+209F)
+	if r == 0x00B2 || r == 0x00B3 || r == 0x00B9 ||  r >= 0x2070 && r <= 0x209F {
+		return true;
+	}
+
 	return unicode.is_letter(r)
 }
 is_digit :: proc(r: rune) -> bool {
 	if '0' <= r && r <= '9' {
 		return true
 	}
+
 	return unicode.is_digit(r)
 }
 
@@ -216,7 +223,7 @@ scan_file_tag :: proc(t: ^Tokenizer) -> string {
 			if next == '/' || next == '*' {
 				break
 			}
-		} 
+		}
 		advance_rune(t)
 	}
 

@@ -1648,7 +1648,7 @@ gb_internal Token expect_operator(AstFile *f) {
 		syntax_error(prev, "'..' for ranges are not allowed, did you mean '..<' or '..='?");
 		f->tokens[f->curr_token_index].flags |= TokenFlag_Replace;
 	}
-	
+
 	advance_token(f);
 	return prev;
 }
@@ -2659,7 +2659,7 @@ gb_internal Ast *parse_operand(AstFile *f, bool lhs) {
 			count_expr = parse_expr(f, false);
 			f->expr_level--;
 		}
-		
+
 		expect_token(f, Token_CloseBracket);
 		return ast_array_type(f, token, count_expr, parse_type(f));
 	} break;
@@ -2677,21 +2677,21 @@ gb_internal Ast *parse_operand(AstFile *f, bool lhs) {
 
 		return ast_map_type(f, token, key, value);
 	} break;
-	
+
 	case Token_matrix: {
 		Token token = expect_token(f, Token_matrix);
 		Ast *row_count = nullptr;
 		Ast *column_count = nullptr;
 		Ast *type = nullptr;
 		Token open, close;
-		
+
 		open  = expect_token_after(f, Token_OpenBracket, "matrix");
 		row_count = parse_expr(f, true);
 		expect_token(f, Token_Comma);
 		column_count = parse_expr(f, true);
 		close = expect_token(f, Token_CloseBracket);
 		type = parse_type(f);
-		
+
 		return ast_matrix_type(f, token, row_count, column_count, type);
 	} break;
 
@@ -5717,6 +5717,47 @@ gb_internal void parser_add_foreign_file_to_process(Parser *p, AstPackage *pkg, 
 }
 
 
+bool collect_odin_files_recursive(String path, Array<FileInfo> *files) {
+	String const FILE_EXT = str_lit(".odin");
+
+	Array<FileInfo> list = {};
+	ReadDirectoryError rd_err = read_directory(path, &list);
+	defer (array_free(&list));
+
+	switch (rd_err) {
+	case ReadDirectory_InvalidPath:
+		syntax_error(pos, "Invalid path: %.*s", LIT(rel_path));
+		return false;
+	case ReadDirectory_NotExists:
+		syntax_error(pos, "Path does not exist: %.*s", LIT(rel_path));
+		return false;
+	case ReadDirectory_Permission:
+		syntax_error(pos, "Unknown error whilst reading path %.*s", LIT(rel_path));
+		return false;
+	case ReadDirectory_NotDir:
+		syntax_error(pos, "Expected a directory for a package, got a file: %.*s", LIT(rel_path));
+		return false;
+	case ReadDirectory_Empty:
+		syntax_error(pos, "Empty directory: %.*s", LIT(rel_path));
+		return false;
+	case ReadDirectory_Unknown:
+		syntax_error(pos, "Unknown error whilst reading path %.*s", LIT(rel_path));
+		return false;
+	}
+
+	bool ok = false;
+
+	for (FileInfo fi : list) {
+		if (fi.is_dir && fi.name.length > 0 && fi.name.cstring[0] == '_') {
+			ok = ok && collect_odin_files_recursive(fi.fullpath, files);
+		} else if (fi.ext == FILE_EXT) {
+			array_add(files, fi);
+		}
+	}
+
+	return ok;
+}
+
 // NOTE(bill): Returns true if it's added
 gb_internal AstPackage *try_add_import_path(Parser *p, String path, String const &rel_path, TokenPos pos, PackageKind kind = Package_Normal) {
 	String const FILE_EXT = str_lit(".odin");
@@ -5750,36 +5791,16 @@ gb_internal AstPackage *try_add_import_path(Parser *p, String path, String const
 		return pkg;
 	}
 
-
 	Array<FileInfo> list = {};
-	ReadDirectoryError rd_err = read_directory(path, &list);
+	bool ok = collect_odin_files_recursive(path, &list);
 	defer (array_free(&list));
+
+	if (!ok) { return nullptr; }
 
 	if (list.count == 1) {
 		GB_ASSERT(path != list[0].fullpath);
 	}
 
-
-	switch (rd_err) {
-	case ReadDirectory_InvalidPath:
-		syntax_error(pos, "Invalid path: %.*s", LIT(rel_path));
-		return nullptr;
-	case ReadDirectory_NotExists:
-		syntax_error(pos, "Path does not exist: %.*s", LIT(rel_path));
-		return nullptr;
-	case ReadDirectory_Permission:
-		syntax_error(pos, "Unknown error whilst reading path %.*s", LIT(rel_path));
-		return nullptr;
-	case ReadDirectory_NotDir:
-		syntax_error(pos, "Expected a directory for a package, got a file: %.*s", LIT(rel_path));
-		return nullptr;
-	case ReadDirectory_Empty:
-		syntax_error(pos, "Empty directory: %.*s", LIT(rel_path));
-		return nullptr;
-	case ReadDirectory_Unknown:
-		syntax_error(pos, "Unknown error whilst reading path %.*s", LIT(rel_path));
-		return nullptr;
-	}
 
 	isize files_with_ext = 0;
 	isize files_to_reserve = 1; // always reserve 1
@@ -6824,7 +6845,7 @@ gb_internal ParseFileError parse_packages(Parser *p, String init_filename) {
 			}
 			try_add_import_path(p, s, s, init_pos, Package_Normal);
 		}
-		
+
 
 		for (String const &path : build_context.extra_packages) {
 			String fullpath = path_to_full_path(permanent_allocator(), path); // LEAK?
@@ -6841,7 +6862,7 @@ gb_internal ParseFileError parse_packages(Parser *p, String init_filename) {
 			}
 		}
 	}
-	
+
 	thread_pool_wait();
 
 	for (ParseFileErrorNode *node = p->file_error_head; node != nullptr; node = node->next) {

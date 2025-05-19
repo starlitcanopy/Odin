@@ -5747,7 +5747,7 @@ bool collect_files_recursively(String path, Array<FileInfo> *files) {
 
 	for (FileInfo fi : list) {
 		String ext = path_extension(fi.name);
-		if (fi.is_dir && fi.name.length > 0 && fi.name[0] == '_') {
+		if (fi.is_dir && fi.name.len > 0 && fi.name[0] == '_') {
 			ok = ok && collect_files_recursively(fi.fullpath, files);
 		} else {
 			array_add(files, fi);

@@ -5749,7 +5749,7 @@ bool collect_odin_files_recursive(String path, Array<FileInfo> *files) {
 
 	for (FileInfo fi : list) {
 		String ext = path_extension(fi.name);
-		if (fi.is_dir && fi.name.length > 0 && fi.name.cstring[0] == '_') {
+		if (fi.is_dir && fi.name.length > 0 && fi.name[0] == '_') {
 			ok = ok && collect_odin_files_recursive(fi.fullpath, files);
 		} else if (ext == FILE_EXT) {
 			array_add(files, fi);

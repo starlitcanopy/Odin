@@ -5717,9 +5717,7 @@ gb_internal void parser_add_foreign_file_to_process(Parser *p, AstPackage *pkg, 
 }
 
 
-bool collect_odin_files_recursive(String path, Array<FileInfo> *files) {
-	String const FILE_EXT = str_lit(".odin");
-
+bool collect_files_recursively(String path, Array<FileInfo> *files) {
 	Array<FileInfo> list = {};
 	ReadDirectoryError rd_err = read_directory(path, &list);
 	defer (array_free(&list));
@@ -5750,8 +5748,8 @@ bool collect_odin_files_recursive(String path, Array<FileInfo> *files) {
 	for (FileInfo fi : list) {
 		String ext = path_extension(fi.name);
 		if (fi.is_dir && fi.name.length > 0 && fi.name[0] == '_') {
-			ok = ok && collect_odin_files_recursive(fi.fullpath, files);
-		} else if (ext == FILE_EXT) {
+			ok = ok && collect_files_recursively(fi.fullpath, files);
+		} else {
 			array_add(files, fi);
 		}
 	}
@@ -5793,7 +5791,7 @@ gb_internal AstPackage *try_add_import_path(Parser *p, String path, String const
 	}
 
 	Array<FileInfo> list = {};
-	bool ok = collect_odin_files_recursive(path, &list);
+	bool ok = collect_files_recursively(path, &list);
 	defer (array_free(&list));
 
 	if (!ok) { return nullptr; }

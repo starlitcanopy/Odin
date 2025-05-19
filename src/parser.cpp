@@ -5717,41 +5717,40 @@ gb_internal void parser_add_foreign_file_to_process(Parser *p, AstPackage *pkg, 
 }
 
 
-bool collect_files_recursively(TokenPos pos, String path, Array<FileInfo> *files) {
+gb_internal bool collect_files_recursively(TokenPos pos, String path, String const &rel_path, Array<FileInfo> *files) {
 	Array<FileInfo> list = {};
 	ReadDirectoryError rd_err = read_directory(path, &list);
 	defer (array_free(&list));
 
 	switch (rd_err) {
 	case ReadDirectory_InvalidPath:
-		syntax_error(pos, "Invalid path: %.*s", LIT(path));
+		syntax_error(pos, "Invalid path: %.*s", LIT(rel_path));
 		return false;
 	case ReadDirectory_NotExists:
-		syntax_error(pos, "Path does not exist: %.*s", LIT(path));
+		syntax_error(pos, "Path does not exist: %.*s", LIT(rel_path));
 		return false;
 	case ReadDirectory_Permission:
-		syntax_error(pos, "Unknown error whilst reading path %.*s", LIT(path));
+		syntax_error(pos, "Unknown error whilst reading path %.*s", LIT(rel_path));
 		return false;
 	case ReadDirectory_NotDir:
-		syntax_error(pos, "Expected a directory for a package, got a file: %.*s", LIT(path));
+		syntax_error(pos, "Expected a directory for a package, got a file: %.*s", LIT(rel_path));
 		return false;
 	case ReadDirectory_Empty:
-		syntax_error(pos, "Empty directory: %.*s", LIT(path));
+		syntax_error(pos, "Empty directory: %.*s", LIT(rel_path));
 		return false;
 	case ReadDirectory_Unknown:
-		syntax_error(pos, "Unknown error whilst reading path %.*s", LIT(path));
+		syntax_error(pos, "Unknown error whilst reading path %.*s", LIT(rel_path));
 		return false;
 	}
 
-	bool ok = false;
+	bool ok = true;
 
 	for (FileInfo fi : list) {
-		String ext = path_extension(fi.name);
 		if (fi.is_dir && fi.name.len > 0 && fi.name[0] == '_') {
-			ok = ok && collect_files_recursively(pos, fi.fullpath, files);
-		} else {
-			array_add(files, fi);
+			ok = ok && collect_files_recursively(pos, fi.fullpath, rel_path, files);
 		}
+
+		array_add(files, fi);
 	}
 
 	return ok;
@@ -5790,10 +5789,12 @@ gb_internal AstPackage *try_add_import_path(Parser *p, String path, String const
 		return pkg;
 	}
 
+	gbAllocator a = heap_allocator();
 	Array<FileInfo> list = {};
-	bool ok = collect_files_recursively(pos, path, &list);
+	array_init(&list, a, 0, 100);
 	defer (array_free(&list));
 
+	bool ok = collect_files_recursively(pos, path, rel_path, &list);
 	if (!ok) { return nullptr; }
 
 	if (list.count == 1) {

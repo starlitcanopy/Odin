@@ -5726,22 +5726,22 @@ bool collect_odin_files_recursive(String path, Array<FileInfo> *files) {
 
 	switch (rd_err) {
 	case ReadDirectory_InvalidPath:
-		syntax_error(pos, "Invalid path: %.*s", LIT(rel_path));
+		syntax_error(pos, "Invalid path: %.*s", LIT(path));
 		return false;
 	case ReadDirectory_NotExists:
-		syntax_error(pos, "Path does not exist: %.*s", LIT(rel_path));
+		syntax_error(pos, "Path does not exist: %.*s", LIT(path));
 		return false;
 	case ReadDirectory_Permission:
-		syntax_error(pos, "Unknown error whilst reading path %.*s", LIT(rel_path));
+		syntax_error(pos, "Unknown error whilst reading path %.*s", LIT(path));
 		return false;
 	case ReadDirectory_NotDir:
-		syntax_error(pos, "Expected a directory for a package, got a file: %.*s", LIT(rel_path));
+		syntax_error(pos, "Expected a directory for a package, got a file: %.*s", LIT(path));
 		return false;
 	case ReadDirectory_Empty:
-		syntax_error(pos, "Empty directory: %.*s", LIT(rel_path));
+		syntax_error(pos, "Empty directory: %.*s", LIT(path));
 		return false;
 	case ReadDirectory_Unknown:
-		syntax_error(pos, "Unknown error whilst reading path %.*s", LIT(rel_path));
+		syntax_error(pos, "Unknown error whilst reading path %.*s", LIT(path));
 		return false;
 	}
 

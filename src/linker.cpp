@@ -439,17 +439,17 @@ try_cross_linking:;
 			#if !defined(GB_SYSTEM_WINDOWS)
 				lib_str = gb_string_appendc(lib_str, "-L/ ");
 			#endif
-			
+
 			StringSet asm_files = {};
 			string_set_init(&asm_files, 64);
 			defer (string_set_destroy(&asm_files));
-			
+
 			StringSet min_libs_set = {};
 			string_set_init(&min_libs_set, 64);
 			defer (string_set_destroy(&min_libs_set));
 
 			String prev_lib = {};
-			
+
 			for (Entity *e : gen->foreign_libraries) {
 				GB_ASSERT(e->kind == Entity_LibraryName);
 				// NOTE(bill): Add these before the linking values
@@ -557,7 +557,7 @@ try_cross_linking:;
 								LIT(obj_format),
 								LIT(obj_file),
 								LIT(build_context.extra_assembler_flags)
-							);						
+							);
 							if (result) {
 								gb_printf_err("executing `nasm` to assemble foreing import of %.*s failed.\n\tSuggestion: `nasm` does not ship with the compiler and should be installed with your system's package manager.\n", LIT(asm_file));
 								return result;
@@ -769,27 +769,27 @@ try_cross_linking:;
 			gbString platform_lib_str = gb_string_make(heap_allocator(), "");
 			defer (gb_string_free(platform_lib_str));
 			if (build_context.metrics.os == TargetOs_darwin) {
-				// Get the MacOSX SDK path.
-				gbString darwin_sdk_path = gb_string_make(temporary_allocator(), "");
-				if (!system_exec_command_line_app_output("xcrun --sdk macosx --show-sdk-path", &darwin_sdk_path)) {
-					darwin_sdk_path = gb_string_set(darwin_sdk_path, "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk");
-				} else {
-					// Trim the trailing newline.
-					darwin_sdk_path = gb_string_trim_space(darwin_sdk_path);
-				}
-				platform_lib_str = gb_string_append_fmt(platform_lib_str, "--sysroot %s ", darwin_sdk_path);
-
-				platform_lib_str = gb_string_appendc(platform_lib_str, "-L/usr/local/lib ");
-
-				// Homebrew's default library path, checking if it exists to avoid linking warnings.
-				if (gb_file_exists("/opt/homebrew/lib")) {
-					platform_lib_str = gb_string_appendc(platform_lib_str, "-L/opt/homebrew/lib ");
-				}
-
-				// MacPort's default library path, checking if it exists to avoid linking warnings.
-				if (gb_file_exists("/opt/local/lib")) {
-					platform_lib_str = gb_string_appendc(platform_lib_str, "-L/opt/local/lib ");
-				}
+				// // Get the MacOSX SDK path.
+				// gbString darwin_sdk_path = gb_string_make(temporary_allocator(), "");
+				// if (!system_exec_command_line_app_output("xcrun --sdk macosx --show-sdk-path", &darwin_sdk_path)) {
+				// 	darwin_sdk_path = gb_string_set(darwin_sdk_path, "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk");
+				// } else {
+				// 	// Trim the trailing newline.
+				// 	darwin_sdk_path = gb_string_trim_space(darwin_sdk_path);
+				// }
+				// platform_lib_str = gb_string_append_fmt(platform_lib_str, "--sysroot %s ", darwin_sdk_path);
+				//
+				// platform_lib_str = gb_string_appendc(platform_lib_str, "-L/usr/local/lib ");
+				//
+				// // Homebrew's default library path, checking if it exists to avoid linking warnings.
+				// if (gb_file_exists("/opt/homebrew/lib")) {
+				// 	platform_lib_str = gb_string_appendc(platform_lib_str, "-L/opt/homebrew/lib ");
+				// }
+				//
+				// // MacPort's default library path, checking if it exists to avoid linking warnings.
+				// if (gb_file_exists("/opt/local/lib")) {
+				// 	platform_lib_str = gb_string_appendc(platform_lib_str, "-L/opt/local/lib ");
+				// }
 
 				// Only specify this flag if the user has given a minimum version to target.
 				// This will cause warnings to show up for mismatched libraries.

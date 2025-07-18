@@ -18,6 +18,20 @@ gb_internal bool rune_is_special(Rune r) {
 		return true;
 	}
 
+	switch (utf8proc_category(r)) {
+	case UTF8PROC_CATEGORY_NO:
+	case UTF8PROC_CATEGORY_SM:
+	case UTF8PROC_CATEGORY_SO:
+	case UTF8PROC_CATEGORY_PD:
+	case UTF8PROC_CATEGORY_PS:
+	case UTF8PROC_CATEGORY_PE:
+	case UTF8PROC_CATEGORY_PI:
+	case UTF8PROC_CATEGORY_PF:
+	case UTF8PROC_CATEGORY_PC:
+	case UTF8PROC_CATEGORY_PO:
+		return true;
+	}
+
 	return false;
 }
 

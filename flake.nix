@@ -21,6 +21,12 @@
         odin = prev.odin.overrideAttrs (_: {
           version = "unstable-2025-05-19";
           patches = [ ]; # I have already applied the darwin patch
+
+          # The nixpkgs derivation removes vendored lib files......
+          postPatch = ''
+            patchShebangs --build build_odin.sh
+          '';
+
           src = ./.;
         });
       };

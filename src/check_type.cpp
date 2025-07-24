@@ -1016,7 +1016,7 @@ gb_internal void check_bit_field_type(CheckerContext *ctx, Type *bit_field_type,
 			gbString s = type_to_string(type);
 			error(f->type, "The type of a bit_field's field must be a typed integer, enum, or boolean, got %s", s);
 			gb_string_free(s);
-		} else if (!(is_type_integer_like(type) || is_type_enum(type) || is_type_boolean(type))) {
+		} else if (!(is_type_integer(type) || is_type_enum(type) || is_type_boolean(type))) {
 			gbString s = type_to_string(type);
 			error(f->type, "The type of a bit_field's field must be an integer, enum, or boolean, got %s", s);
 			gb_string_free(s);

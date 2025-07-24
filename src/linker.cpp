@@ -848,14 +848,14 @@ try_cross_linking:;
 				// This will cause warnings to show up for mismatched libraries.
 				// NOTE(harold): For device subtargets we have to explicitly set the default version to 
 				//               avoid the same warning since we configure our own minimum version when compiling for devices.
-				if (build_context.minimum_os_version_string_given || selected_subtarget != Subtarget_Default) {
-					link_settings = gb_string_append_fmt(link_settings, "-m%s-version-min=%.*s ", darwin_min_version_id, LIT(build_context.minimum_os_version_string));
-				}
-
-				if (build_context.build_mode != BuildMode_DynamicLibrary) {
-					// This points the linker to where the entry point is
-					link_settings = gb_string_appendc(link_settings, "-e _main ");
-				}
+				// if (build_context.minimum_os_version_string_given || selected_subtarget != Subtarget_Default) {
+				// 	link_settings = gb_string_append_fmt(link_settings, "-m%s-version-min=%.*s ", darwin_min_version_id, LIT(build_context.minimum_os_version_string));
+				// }
+				//
+				// if (build_context.build_mode != BuildMode_DynamicLibrary) {
+				// 	// This points the linker to where the entry point is
+				// 	link_settings = gb_string_appendc(link_settings, "-e _main ");
+				// }
 			} else if (build_context.metrics.os == TargetOs_freebsd) {
 				if (build_context.sanitizer_flags & (SanitizerFlag_Address | SanitizerFlag_Memory)) {
 					// It's imperative that `pthread` is linked before `libc`,
